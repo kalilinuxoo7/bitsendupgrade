@@ -6,9 +6,11 @@
 #define BITCOIN_CLIENTVERSION_H
 
 #if defined(HAVE_CONFIG_H)
-#include "config/bitcoin-config.h"
+#include "config/bitsend-config.h"
 #else
 
+	
+	/**TODO-- change accordingly
 /**
  * client versioning and copyright year
  */

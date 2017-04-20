@@ -7,7 +7,7 @@
 #define BITCOIN_COMPAT_H
 
 #if defined(HAVE_CONFIG_H)
-#include "config/bitcoin-config.h"
+#include "config/bitsend-config.h"
 #endif
 
 #ifdef WIN32
@@ -79,9 +79,11 @@ typedef u_int SOCKET;
 #define MSG_NOSIGNAL 0
 #endif
 
-#if HAVE_DECL_STRNLEN == 0
+/*#if HAVE_DECL_STRNLEN == 0
 size_t strnlen( const char *start, size_t max_len);
-#endif // HAVE_DECL_STRNLEN
+#endif // HAVE_DECL_STRNLEN*/ //TODO--
+
+size_t strnlen_int( const char *start, size_t max_len);
 
 bool static inline IsSelectableSocket(SOCKET s) {
 #ifdef WIN32
