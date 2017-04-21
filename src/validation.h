@@ -47,6 +47,10 @@ struct ChainTxData;
 struct PrecomputedTransactionData;
 struct LockPoints;
 
+
+static const int FORKX17_Main_Net = 240000;
+static const int FORKX17_Main_Net2 = 1477958400; 
+
 /** Default for DEFAULT_WHITELISTRELAY. */
 static const bool DEFAULT_WHITELISTRELAY = true;
 /** Default for DEFAULT_WHITELISTFORCERELAY. */

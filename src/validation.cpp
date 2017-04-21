@@ -1267,15 +1267,17 @@ double ConvertBitsToDouble(unsigned int nBits)
 
 CAmount GetBlockSubsidy(int nBits, int nHeight, const Consensus::Params& consensusParams)/**TODO-- */
 {
-	//TODO work for bitsend
-    int halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
-    // Force block reward to zero when right shift is undefined.
-    if (halvings >= 64)
-        return 0;
+	//TODO--
 
     CAmount nSubsidy = 50 * COIN;
-    // Subsidy is cut in half every 210,000 blocks which will occur approximately every 4 years.
-    nSubsidy >>= halvings;
+	
+	if (nHeight == 1)
+		nSubsidy = 1306400 * COIN; 
+    
+    if (nHeight >= (FORKX17_Main_Net-1000))nSubsidy = 25 * COIN;
+	if (nHeight >= ((FORKX17_Main_Net*33)-50256))nSubsidy = 1/10 * COIN;
+	
+	
     return nSubsidy;
 }
 
