@@ -1,10 +1,64 @@
-Bitsend Core release notes can be found here:
+(note: this is a temporary file, to be added-to by anybody, and moved to
+release-notes at release time)
 
-- [v0.11.0](release-notes/release-notes-0.11.0.md) released Jan/15/2015.
-- [v0.11.1](release-notes/release-notes-0.11.1.md) released Feb/10/2015.
-- [v0.11.2](release-notes/release-notes-0.11.2.md) released April/21/2015.
-- [v1.0.0.1](release-notes/release-notes-1.0.0.1.md) released February/14/2016.
-- [v1.1.0.2](release-notes/release-notes-1.1.0.2.md) released August/26/2016.
-- [v1.1.0.3](release-notes/release-notes-1.1.0.3.md) released August/26/2016.
-- [v1.2.0.0](release-notes/release-notes-1.2.0.0.md) released October/10/2016.
-- [v1.2.7.0](release-notes/release-notes-1.2.7.0.md) released March/13/2017.
+Bitcoin Core version 0.14.x is now available from:
+
+  <https://bitcoin.org/bin/bitcoin-core-0.14.x/>
+
+This is a new minor version release, including various bugfixes and
+performance improvements, as well as updated translations.
+
+Please report bugs using the issue tracker at github:
+
+  <https://github.com/bitcoin/bitcoin/issues>
+
+To receive security and update notifications, please subscribe to:
+
+  <https://bitcoincore.org/en/list/announcements/join/>
+
+Compatibility
+==============
+
+Bitcoin Core is extensively tested on multiple operating systems using
+the Linux kernel, macOS 10.8+, and Windows Vista and later.
+
+Microsoft ended support for Windows XP on [April 8th, 2014](https://www.microsoft.com/en-us/WindowsForBusiness/end-of-xp-support),
+No attempt is made to prevent installing or running the software on Windows XP, you
+can still do so at your own risk but be aware that there are known instabilities and issues.
+Please do not report issues about Windows XP to the issue tracker.
+
+Bitcoin Core should also work on most other Unix-like systems but is not
+frequently tested on them.
+
+Notable changes
+===============
+
+Example item
+-----------------------------------------------
+
+RPC changes
+-----------
+
+The first positional argument of `createrawtransaction` was renamed.
+This interface change breaks compatibility with 0.14.0, when the named
+arguments functionality, introduced in 0.14.0, is used.
+
+0.14.x Change log
+=================
+
+Detailed release notes follow. This overview includes changes that affect
+behavior, not code moves, refactors and string updates. For convenience in locating
+the code changes and accompanying discussion, both the pull request and
+git merge commit are mentioned.
+
+[to be filled in at release]
+
+Credits
+=======
+
+Thanks to everyone who directly contributed to this release:
+
+[to be filled in at release]
+
+As well as everyone that helped translating on [Transifex](https://www.transifex.com/projects/p/bitcoin/).
+

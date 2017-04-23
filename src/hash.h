@@ -20,10 +20,16 @@
 #include "crypto/sph_keccak.h"
 #include "crypto/sph_skein.h"
 #include "crypto/sph_luffa.h"
-#include "crypto/sph_cubehash.h"
+#include "crypto/sph_cubehash.h"//X17 
 #include "crypto/sph_shavite.h"
 #include "crypto/sph_simd.h"
-#include "crypto/sph_echo.h"
+#include "crypto/sph_echo.h" 
+#include "crypto/sph_hamsi.h" //X17 
+#include "crypto/sph_fugue.h"//X17 
+#include "crypto/sph_shabal.h" //X17 
+#include "crypto/sph_whirlpool.h" //X17 
+#include "crypto/sph_sha2.h" //X17 
+#include "crypto/sph_haval.h" //X17 
 
 
 #include <vector>

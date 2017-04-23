@@ -151,6 +151,8 @@ public:
 
         checkpointData = (CCheckpointData) {
             boost::assign::map_list_of
+			(  0, uint256S("0000012e1b8843ac9ce8c18603658eaf8895f99d3f5e7e1b7b1686f35e3c087a")) //bitsenddev 04-2015
+	        ( 10000, uint256S("0x0000000006c1a1573ca82ad24789c10a36535cf085f201122f1d112a88841271"))
             
         };
 
