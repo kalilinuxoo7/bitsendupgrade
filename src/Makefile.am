@@ -106,7 +106,7 @@ BITCOIN_CORE_H = \
   init.h \
   #instantx.h \
   key.h \
-  keepass.h \
+  #keepass.h \
   keystore.h \
   dbwrapper.h \
   limitedmap.h \

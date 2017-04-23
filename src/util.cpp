@@ -605,9 +605,9 @@ void ReadConfigFile(const std::string& confPath)
     if (!streamConfig.good()){
 		/**TODO-- */
         // Create empty bitsend.conf if it does not excist
-        FILE* configFile = fopen(GetConfigFile().string().c_str(), "a");
-        if (configFile != NULL)
-            fclose(configFile);
+        //FILE* configFile = fopen(GetConfigFile().string().c_str(), "a");
+        //if (configFile != NULL)
+            //fclose(configFile);
         return; // Nothing to read, so just return //return; // No bitcoin.conf file is OK
     }
         
