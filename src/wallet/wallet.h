@@ -245,14 +245,15 @@ public:
      *  0  : in memory pool, waiting to be included in a block
      * >=1 : this many blocks deep in the main chain
      */
-    int GetDepthInMainChain(const CBlockIndex* &pindexRet, bool enableIX = true) const;
-    int GetDepthInMainChain(bool enableIX = true) const { const CBlockIndex *pindexRet; return GetDepthInMainChain(pindexRet, enableIX); }
-    bool IsInMainChain() const { const CBlockIndex *pindexRet; return GetDepthInMainChain(pindexRet) > 0; }
+    int GetDepthInMainChain(const CBlockIndex* &pindexRet/*, bool enableIX = true*/) const;
+    //int GetDepthInMainChain(/*bool enableIX = true*/) const { const CBlockIndex *pindexRet; return GetDepthInMainChain(pindexRet/*, enableIX*/); }
+    int GetDepthInMainChain(/*bool enableIX = true*/) const { const CBlockIndex *pindexRet; return GetDepthInMainChain(pindexRet); }
+	bool IsInMainChain() const { const CBlockIndex *pindexRet; return GetDepthInMainChain(pindexRet) > 0; }
     int GetBlocksToMaturity() const;
 	int GetTransactionLockSignatures() const;
     bool IsTransactionLockTimedOut() const;
     /** Pass this transaction to the mempool. Fails if absolute fee exceeds absurd fee. */
-    bool AcceptToMemoryPool(const CAmount& nAbsurdFee, CValidationState& state, bool ignoreFees=false);
+    bool AcceptToMemoryPool(const CAmount& nAbsurdFee, CValidationState& state/*, bool ignoreFees=false*/);
     bool hashUnset() const { return (hashBlock.IsNull() || hashBlock == ABANDON_HASH); }
     bool isAbandoned() const { return (hashBlock == ABANDON_HASH); }
     void setAbandoned() { hashBlock = ABANDON_HASH; }
@@ -464,7 +465,7 @@ public:
     int64_t GetTxTime() const;
     int GetRequestCount() const;
 
-    bool RelayWalletTransaction(CConnman* connman, std::string strCommand);//bool RelayWalletTransaction(std::string strCommand="tx");
+    bool RelayWalletTransaction(CConnman* connman/*, std::string strCommand*/);//bool RelayWalletTransaction(std::string strCommand="tx");TODO--
 
     std::set<uint256> GetConflicts() const;
 };
@@ -619,7 +620,7 @@ private:
      * all coins from coinControl are selected; Never select unconfirmed coins
      * if they are not ours
      */
-    bool SelectCoins(const std::vector<COutput>& vAvailableCoins, const CAmount& nTargetValue, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, CAmount& nValueRet, const CCoinControl *coinControl = NULL, AvailableCoinsType coin_type=ALL_COINS, bool useIX = true) const;
+    bool SelectCoins(const std::vector<COutput>& vAvailableCoins, const CAmount& nTargetValue, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, CAmount& nValueRet, const CCoinControl *coinControl = NULL/*, AvailableCoinsType coin_type=ALL_COINS, bool useIX = true*/) const;//TODO--
 
     CWalletDB *pwalletdbEncryption;
 
@@ -756,7 +757,7 @@ public:
     /**
      * populate vCoins with vector of available COutputs.
      */
-    void AvailableCoins(std::vector<COutput>& vCoins, bool fOnlyConfirmed=true, const CCoinControl *coinControl = NULL, bool fIncludeZeroValue=false, AvailableCoinsType coin_type=ALL_COINS, bool useIX = false) const;
+    void AvailableCoins(std::vector<COutput>& vCoins, bool fOnlyConfirmed=true, const CCoinControl *coinControl = NULL, bool fIncludeZeroValue=false/*, AvailableCoinsType coin_type=ALL_COINS, bool useIX = false*/) const;//TODO--
 
     /**
      * Shuffle and select coins until nTargetValue is reached while avoiding
@@ -833,7 +834,7 @@ public:
     //! Adds a watch-only address to the store, without saving it to disk (used by LoadWallet)
     bool LoadWatchOnly(const CScript &dest);
 
-    bool Unlock(const SecureString& strWalletPassphrase, bool anonimizeOnly = false);//TODO--
+    bool Unlock(const SecureString& strWalletPassphrase/*, bool anonimizeOnly = false*/);//TODO--
     bool ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase, const SecureString& strNewWalletPassphrase);
     bool EncryptWallet(const SecureString& strWalletPassphrase);
 
@@ -871,7 +872,7 @@ public:
     CAmount GetDenominatedBalance(bool unconfirmed=false) const;
 
    /* bool GetBudgetSystemCollateralTX(CTransaction& tx, uint256 hash, bool useIX);//New system but Chris disagree
-    bool GetBudgetSystemCollateralTX(CWalletTx& tx, uint256 hash, bool useIX);*/
+    bool GetBudgetSystemCollateralTX(CWalletTx& tx, uint256 hash, bool useIX);*/ /**TODO-- */
 
 
     /**
@@ -887,7 +888,7 @@ public:
      */
     bool CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRet, int& nChangePosInOut,
                            std::string& strFailReason, const CCoinControl *coinControl = NULL, bool sign = true);
-    bool CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey, CConnman* connman, CValidationState& state, std::string strCommand); //std::string strCommand="tx" need it , but CConnman* connman
+    bool CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey, CConnman* connman, CValidationState& state/*, std::string strCommand*/); //std::string strCommand="tx" need it , but CConnman* connman
 
 	
 	std::string PrepareDarksendDenominate(int minRounds, int maxRounds);
@@ -963,8 +964,10 @@ public:
 
     bool DelAddressBook(const CTxDestination& address);
 
-    bool UpdatedTransaction(const uint256 &hashTx) override;//void UpdatedTransaction(const uint256 &hashTx) override;
+    bool UpdatedTransaction(const uint256 &hashTx) override;//bool UpdatedTransaction(const uint256 &hashTx) override;//TODO--
 
+	//bool UpdatedTransaction(const uint256 &hashTx) override;//TODO-- remove
+	
     void Inventory(const uint256 &hash) override
     {
         {
