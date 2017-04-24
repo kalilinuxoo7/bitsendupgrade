@@ -98,22 +98,14 @@ BITCOIN_CORE_H = \
   core_io.h \
   core_memusage.h \
   cuckoocache.h \
-  #darksend.h \
-  #darksend-relay.h \
   httprpc.h \
   httpserver.h \
   indirectmap.h \
   init.h \
-  #instantx.h \
   key.h \
-  #keepass.h \
   keystore.h \
   dbwrapper.h \
   limitedmap.h \
-  #masternode.h \
-  #masternode-pos.h \
-  #masternodeman.h \
-  #masternodeconfig.h \
   memusage.h \
   merkleblock.h \
   miner.h \
@@ -146,7 +138,6 @@ BITCOIN_CORE_H = \
   support/events.h \
   support/lockedpool.h \
   sync.h \
-  #spork.h \
   threadsafety.h \
   threadinterrupt.h \
   timedata.h \
@@ -184,7 +175,6 @@ libbitcoin_util_a-clientversion.$(OBJEXT): obj/build.h
 libbitcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(MINIUPNPC_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
 libbitcoin_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_server_a_SOURCES = \
-  #activemasternode.cpp \
   addrman.cpp \
   addrdb.cpp \
   bloom.cpp \
@@ -402,9 +392,9 @@ bitsendd_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 bitsendd_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 bitsendd_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
-#if TARGET_WINDOWS
-#bitsendd_SOURCES += bitsendd-res.rc
-#endif
+if TARGET_WINDOWS
+bitsendd_SOURCES += bitsendd-res.rc
+endif
 
 bitsendd_LDADD = \
   $(LIBBITCOIN_SERVER) \
