@@ -37,17 +37,17 @@
 #include "ui_interface.h"
 #include "util.h"
 /**TODO-- change accordingly */
-#include "activemasternode.h"
+/*#include "activemasternode.h"
 #include "masternode-budget.h"
 #include "masternode-payments.h"
 #include "masternodeman.h"
 #include "masternodeconfig.h"
-#include "spork.h"
+#include "spork.h"*/
 
 #include "utilmoneystr.h"
 #include "validationinterface.h"
 #ifdef ENABLE_WALLET
-#include "keepass.h"//TODO--
+//#include "keepass.h"//TODO--
 #include "wallet/wallet.h"
 #endif
 #include "warnings.h"
@@ -221,9 +221,9 @@ void PrepareShutdown() //TODO--
         pwalletMain->Flush(false);
 #endif
     MapPort(false);
-	DumpMasternodes();// TODO--
-    DumpBudgets();// TODO--
-    DumpMasternodePayments();// TODO--
+	//DumpMasternodes();// TODO--
+    //DumpBudgets();// TODO--
+    //DumpMasternodePayments();// TODO--
     UnregisterValidationInterface(peerLogic.get());
     peerLogic.reset();
     g_connman.reset();
@@ -852,7 +852,7 @@ void InitParameterInteraction()
     }
 	
 	/**TODO-- */
-	if(!GetBoolArg("-enableinstantx", fEnableInstantX)){
+	/*if(!GetBoolArg("-enableinstantx", fEnableInstantX)){
         if (SoftSetArg("-instantxdepth", 0))
             LogPrintf("AppInit2 : parameter interaction: -enableinstantx=false -> setting -nInstantXDepth=0\n");
     }
@@ -867,7 +867,7 @@ void InitParameterInteraction()
         LogPrintf("AppInit2 : parameter interaction: -liquidityprovider=%d -> setting -anonymizedashamount=999999\n", nLiqProvTmp);
         mapArgs["-darksendmultisession"] = "0";
         LogPrintf("AppInit2 : parameter interaction: -liquidityprovider=%d -> setting -darksendmultisession=0\n", nLiqProvTmp);
-    }
+    }*/
 	//TODO-- ends
 }
 
@@ -1285,11 +1285,11 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
     }
 	
 	/**TODO-- */
-	if (mapArgs.count("-sporkkey")) // spork priv key
+	/*if (mapArgs.count("-sporkkey")) // spork priv key
     {
         if (!sporkManager.SetPrivKey(GetArg("-sporkkey", "")))
             return InitError(_("Unable to sign spork message, wrong key?"));
-    }
+    }*/
 
     // Start the lightweight task scheduler thread
     CScheduler::Function serviceLoop = boost::bind(&CScheduler::serviceQueue, &scheduler);
@@ -1311,10 +1311,10 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     // ********************************************************* Step 5: verify wallet database integrity
 #ifdef ENABLE_WALLET
-   if (!fDisableWallet) {
+   //if (!fDisableWallet) {
     
 	/**TODO-- */
-        filesystem::path backupDir = GetDataDir() / "backups";
+        /*filesystem::path backupDir = GetDataDir() / "backups";
         if (!filesystem::exists(backupDir))
         {
             // Always create backup folder to not confuse the operating system's file browser
@@ -1402,11 +1402,11 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
     // Initialize KeePass Integration
     keePassInt.init();
 
-    } // (!fDisableWallet)
+    } */// (!fDisableWallet)
 	
 	//originally -- 
-	/*if (!CWallet::Verify())
-        return false;*/
+	if (!CWallet::Verify())
+        return false;
 #endif
     // ********************************************************* Step 6: network initialization
     // Note that we absolutely cannot open any actual connections
@@ -1815,7 +1815,7 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
 
 	
 	/**TODO-- */
-	// ********************************************************* Step 10: setup DarkSend
+	/*// ********************************************************* Step 10: setup DarkSend
 
     uiInterface.InitMessage(_("Loading masternode cache..."));
 
@@ -1953,7 +1953,7 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
     darkSendPool.InitDenominations();
     darkSendPool.InitCollateralAddress();
 
-    threadGroup.create_thread(boost::bind(&ThreadCheckDarkSendPool)); //TODO-- ends
+    threadGroup.create_thread(boost::bind(&ThreadCheckDarkSendPool));*/ //TODO-- ends
 	
     // ********************************************************* Step 11: start node
 
