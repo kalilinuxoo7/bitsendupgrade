@@ -1271,7 +1271,7 @@ CAmount GetBlockSubsidy(int nBits, int nHeight, const Consensus::Params& consens
 
     CAmount nSubsidy = 50 * COIN;
 	
-	if (nHeight == 1)
+	if (nHeight = 1)
 		nSubsidy = 1306400 * COIN; 
     
     if (nHeight >= (FORKX17_Main_Net-1000))nSubsidy = 25 * COIN;
@@ -1282,7 +1282,7 @@ CAmount GetBlockSubsidy(int nBits, int nHeight, const Consensus::Params& consens
 }
 
 /**TODO-- Masternode to old sysytem */
-CAmount GetMasternodePayment(int nHeight, CAmount blockValue)
+/*CAmount GetMasternodePayment(int nHeight, CAmount blockValue)
 {
     CAmount ret = blockValue/5; // start at 20%
 
@@ -1316,8 +1316,8 @@ CAmount GetMasternodePayment(int nHeight, CAmount blockValue)
         if(nHeight > 158000+((576*30)*17)) ret += blockValue / 40; // 451760 - 60.0% - 2016-04-11
     */
 
-    return ret;
-}
+   /* return ret;
+}*/
 
 
 bool IsInitialBlockDownload()
@@ -3194,7 +3194,7 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
     const int nHeight = pindexPrev == NULL ? 0 : pindexPrev->nHeight + 1;
     // Check proof of work
 	/**TODO-- */
-    if(Params().NetworkIDString() == CBaseChainParams::TESTNET) {
+    /*if(Params().NetworkIDString() == CBaseChainParams::TESTNET) {
         if (block.nBits != GetNextWorkRequired(pindexPrev, &block, consensusParams))
             return state.DoS(100, error("%s : incorrect proof of work at %d", __func__, nHeight),
                              REJECT_INVALID, "bad-diffbits");
@@ -3213,7 +3213,7 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
                 return state.DoS(100, error("%s : incorrect proof of work at %d", __func__, nHeight),
                                 REJECT_INVALID, "bad-diffbits");
         }
-    }
+    }*/
 	//TODO-- ends
     // Check timestamp against prev
     if (block.GetBlockTime() <= pindexPrev->GetMedianTimePast())
