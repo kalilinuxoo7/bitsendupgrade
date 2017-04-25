@@ -55,7 +55,7 @@ struct COrphanTx {
 };
 std::map<uint256, COrphanTx> mapOrphanTransactions GUARDED_BY(cs_main);
 std::map<COutPoint, std::set<std::map<uint256, COrphanTx>::iterator, IteratorComparator>> mapOrphanTransactionsByPrev GUARDED_BY(cs_main);
-map<uint256, int64_t> mapRejectedBlocks;//TODO-- 
+std::map<uint256, int64_t> mapRejectedBlocks;//TODO-- 
 void EraseOrphansFor(NodeId peer) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 static size_t vExtraTxnForCompactIt = 0;
@@ -913,14 +913,14 @@ bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
                    pcoinsTip->HaveCoinsInCache(inv.hash);
         }
 	/**TODO-- */
-	case MSG_DSTX:
-        return mapDarksendBroadcastTxes.count(inv.hash);//
+	//case MSG_DSTX:
+        //return mapDarksendBroadcastTxes.count(inv.hash);//
     case MSG_BLOCK:
     case MSG_WITNESS_BLOCK:
         return mapBlockIndex.count(inv.hash);
 	
 	/**TODO-- */
-	 case MSG_TXLOCK_REQUEST:
+	/*case MSG_TXLOCK_REQUEST:
         return mapTxLockReq.count(inv.hash) ||
                mapTxLockReqRejected.count(inv.hash);
     case MSG_TXLOCK_VOTE:
@@ -964,7 +964,7 @@ bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
         }
         return false;
     case MSG_MASTERNODE_PING:
-        return mnodeman.mapSeenMasternodePing.count(inv.hash); //TODO-- ends
+        return mnodeman.mapSeenMasternodePing.count(inv.hash);*/ //TODO-- ends
     }
     // Don't know what it is, just say we already got one
     return true;
@@ -1949,7 +1949,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
 		
 		/**TODO-- */
 		//masternode signed transaction
-        bool ignoreFees = false;
+        /*bool ignoreFees = false;
         CTxIn vin;
         vector<unsigned char> vchSig;
         int64_t sigTime;
@@ -1993,7 +1993,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                     mapDarksendBroadcastTxes.insert(make_pair(tx.GetHash(), dstx));
                 }
             }
-        }
+        }*/
 		/**TODO-- ends */
 
 		
@@ -2151,10 +2151,10 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             AddToCompactExtraTransactions(removedTx);
 
 		/**TODO-- */
-		if(strCommand == "dstx"){
+		/*if(strCommand == "dstx"){
             CInv inv(MSG_DSTX, tx.GetHash());
             RelayInv(inv);
-        }
+        }*/
 
 		
         int nDoS = 0;
@@ -2509,8 +2509,8 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                     LOCK(cs_main);
                     Misbehaving(pfrom->GetId(), nDoS);
                 }
-                std::string strError = "invalid header received " + header.GetHash().ToString();//TODO--
-                return error(strError.c_str());
+                //std::string strError = "invalid header received " + headers.GetHash().ToString();//TODO--
+                //return error(strError.c_str());
             }
         }
 
@@ -2821,13 +2821,13 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
     else {
 		/**TODO-- */
         //probably one the extensions
-        darkSendPool.ProcessMessageDarksend(pfrom, strCommand, vRecv);
+        /*darkSendPool.ProcessMessageDarksend(pfrom, strCommand, vRecv);
         mnodeman.ProcessMessage(pfrom, strCommand, vRecv);
         budget.ProcessMessage(pfrom, strCommand, vRecv);
         masternodePayments.ProcessMessageMasternodePayments(pfrom, strCommand, vRecv);
         ProcessMessageInstantX(pfrom, strCommand, vRecv);
         ProcessSpork(pfrom, strCommand, vRecv);
-        masternodeSync.ProcessMessage(pfrom, strCommand, vRecv);
+        masternodeSync.ProcessMessage(pfrom, strCommand, vRecv);*/
     }
 
 

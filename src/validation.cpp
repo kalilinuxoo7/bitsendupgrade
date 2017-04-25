@@ -15,12 +15,12 @@
 #include "hash.h"
 #include "init.h"
 /**TODO-- */
-#include "instantx.h"
+/*#include "instantx.h"
 #include "darksend.h"
 #include "masternode-budget.h"
 #include "masternode-payments.h"
 #include "masternode-sync.h"
-#include "masternodeman.h"
+#include "masternodeman.h"*/
 /**TODO-- ends */
 #include "policy/fees.h"
 #include "policy/policy.h"
@@ -38,7 +38,7 @@
 #include "ui_interface.h"
 #include "undo.h"
 #include "util.h"
-#include "spork.h"//TODO--
+//#include "spork.h"//TODO--
 #include "utilmoneystr.h"
 #include "utilstrencodings.h"
 #include "validationinterface.h"
@@ -498,7 +498,7 @@ int64_t GetTransactionSigOpCost(const CTransaction& tx, const CCoinsViewCache& i
 
 
 /**TODO-- */
-int GetInputAge(CTxIn& vin)
+/*int GetInputAge(CTxIn& vin)
 {
     CCoinsView viewDummy;
     CCoinsViewCache view(&viewDummy);
@@ -552,7 +552,7 @@ int GetIXConfirmations(uint256 nTXHash)
     }
 
     return 0;
-}
+}*/
 /**TODO-- ends */
 
 bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fCheckDuplicateInputs)
@@ -638,7 +638,7 @@ static bool IsCurrentForFeeEstimation()
 
 bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const CTransactionRef& ptx, bool fLimitFree,
                               bool* pfMissingInputs, int64_t nAcceptTime, std::list<CTransactionRef>* plTxnReplaced,
-                              bool fOverrideMempoolLimit, const CAmount& nAbsurdFee, std::vector<uint256>& vHashTxnToUncache, bool fDryRun)//TODO--
+                              bool fOverrideMempoolLimit, const CAmount& nAbsurdFee, std::vector<uint256>& vHashTxnToUncache/*, bool fDryRun*/)//TODO--
 {
     const CTransaction& tx = *ptx;
     const uint256 hash = tx.GetHash();
@@ -676,7 +676,7 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
 
 	 // ----------- instantX transaction scanning ----------- TODO--
 
-    BOOST_FOREACH(const CTxIn& in, tx.vin){
+    /*BOOST_FOREACH(const CTxIn& in, tx.vin){
         if(mapLockedInputs.count(in.prevout)){
             if(mapLockedInputs[in.prevout] != tx.GetHash()){
                 return state.DoS(0,
@@ -684,7 +684,7 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
                                  REJECT_INVALID, "tx-lock-conflict");
             }
         }
-    }
+    }*/
 	//TODO-- ends
 	
     // Check for conflicts with in-memory transactions
@@ -1056,7 +1056,7 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
                 __func__, hash.ToString(), FormatStateMessage(state));
         }
 
-		if(!fDryRun){//TODO--
+		//if(!fDryRun){//TODO--
         // Remove conflicting transactions from the mempool
         BOOST_FOREACH(const CTxMemPool::txiter it, allConflicting)
         {
@@ -1085,10 +1085,10 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
             if (!pool.exists(hash))
                 return state.DoS(0, false, REJECT_INSUFFICIENTFEE, "mempool full");
         }
-    }
+    //}
 	}
 
-    if(!fDryRun) GetMainSignals().SyncTransaction(tx, NULL, CMainSignals::SYNC_TRANSACTION_NOT_IN_BLOCK);//TODO--
+    /*if(!fDryRun)*/ GetMainSignals().SyncTransaction(tx, NULL, CMainSignals::SYNC_TRANSACTION_NOT_IN_BLOCK);//TODO--
 
     return true;
 }
@@ -1099,7 +1099,7 @@ bool AcceptToMemoryPoolWithTime(CTxMemPool& pool, CValidationState &state, const
 {
     std::vector<uint256> vHashTxToUncache;
     bool res = AcceptToMemoryPoolWorker(pool, state, tx, fLimitFree, pfMissingInputs, nAcceptTime, plTxnReplaced, fOverrideMempoolLimit, nAbsurdFee, vHashTxToUncache);
-    if (!res || fDryRun) { /**TODO-- */
+    if (!res /*|| fDryRun*/) { /**TODO-- */
         BOOST_FOREACH(const uint256& hashTx, vHashTxToUncache)
             pcoinsTip->Uncache(hashTx);
     }
@@ -2078,7 +2078,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     LogPrint("bench", "      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) [%.2fs]\n", (unsigned)block.vtx.size(), 0.001 * (nTime3 - nTime2), 0.001 * (nTime3 - nTime2) / block.vtx.size(), nInputs <= 1 ? 0 : 0.001 * (nTime3 - nTime2) / (nInputs-1), nTimeConnect * 0.000001);
 
     CAmount blockReward = nFees + GetBlockSubsidy(pindex->pprev->nBits, pindex->nHeight, chainparams.GetConsensus());
-    if (!IsBlockValueValid(block, blockReward + nFees))//if (block.vtx[0]->GetValueOut() > blockReward) /**TODO-- */
+    if (block.vtx[0]->GetValueOut() > blockReward)//if (!IsBlockValueValid(block, blockReward + nFees))// /**TODO-- */
         return state.DoS(100,
                          error("ConnectBlock(): coinbase pays too much (actual=%d vs limit=%d)",
                                block.vtx[0]->GetValueOut(), blockReward),
@@ -2443,7 +2443,7 @@ bool static ConnectTip(CValidationState& state, const CChainParams& chainparams,
     return true;
 }
 /**TODO-- */
-bool DisconnectBlocksAndReprocess(int blocks)
+/*bool DisconnectBlocksAndReprocess(int blocks)
 {
     LOCK(cs_main);
 
@@ -2455,7 +2455,7 @@ bool DisconnectBlocksAndReprocess(int blocks)
         DisconnectTip(state, chainparams.GetConsensus());
 
     return true;
-}
+}*/
 
 
 /**
@@ -3043,7 +3043,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
 
 	
 	/**TODO-- */
-	// ----------- instantX transaction scanning -----------
+	/*// ----------- instantX transaction scanning -----------
 
     if(IsSporkActive(SPORK_3_INSTANTX_BLOCK_FILTERING)){
         BOOST_FOREACH(const CTransaction& tx, block.vtx){
@@ -3091,6 +3091,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
             LogPrintf("CheckBlock() : WARNING: Couldn't find previous block, skipping IsBlockPayeeValid()\n");
         }
     }
+	*/
 
     // -------------------------------------------
 
@@ -3492,13 +3493,13 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
         return error("%s: ActivateBestChain failed", __func__);
 
 	/**TODO-- */
-	if(!fLiteMode){
+	/*if(!fLiteMode){
         if (masternodeSync.RequestedMasternodeAssets > MASTERNODE_SYNC_LIST) {
             darkSendPool.NewBlock();
             masternodePayments.ProcessBlock(GetHeight()+10);
             budget.NewBlock();
         }
-    }
+    }*/
 
     LogPrintf("%s : ACCEPTED\n", __func__);
 	

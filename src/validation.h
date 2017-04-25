@@ -339,7 +339,7 @@ void PruneBlockFilesManual(int nPruneUpToHeight);
  * plTxnReplaced will be appended to with all transactions replaced from mempool **/
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransactionRef &tx, bool fLimitFree,
                         bool* pfMissingInputs, std::list<CTransactionRef>* plTxnReplaced = NULL,
-                        bool fOverrideMempoolLimit=false, const CAmount nAbsurdFee=0, bool fDryRun=false); //TODO--
+                        bool fOverrideMempoolLimit=false, const CAmount nAbsurdFee=0/*, bool fDryRun=false*/); //TODO--
 
 /**TODO-- */						
 int GetInputAge(CTxIn& vin);
