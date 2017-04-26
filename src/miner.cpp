@@ -102,11 +102,11 @@ BlockAssembler::BlockAssembler(const CChainParams& _chainparams)
     }
 
     // Limit weight to between 4K and MAX_BLOCK_WEIGHT-4K for sanity:
-    nBlockMaxWeight = std::max((unsigned int)5500, std::min((unsigned int)(MAX_BLOCK_WEIGHT-5500), nBlockMaxWeight));
+    nBlockMaxWeight = std::max((unsigned int)4000, std::min((unsigned int)(MAX_BLOCK_WEIGHT-4000), nBlockMaxWeight));
     // Limit size to between 1K and MAX_BLOCK_SERIALIZED_SIZE-1K for sanity:
-    nBlockMaxSize = std::max((unsigned int)10000, std::min((unsigned int)(MAX_BLOCK_SERIALIZED_SIZE-10000), nBlockMaxSize));
+    nBlockMaxSize = std::max((unsigned int)1000, std::min((unsigned int)(MAX_BLOCK_SERIALIZED_SIZE-1000), nBlockMaxSize));
     // Whether we need to account for byte usage (in addition to weight usage)
-    fNeedSizeAccounting = (nBlockMaxSize < MAX_BLOCK_SERIALIZED_SIZE-10000);
+    fNeedSizeAccounting = (nBlockMaxSize < MAX_BLOCK_SERIALIZED_SIZE-1000);
 }
 
 void BlockAssembler::resetBlock()
@@ -114,8 +114,8 @@ void BlockAssembler::resetBlock()
     inBlock.clear();
 
     // Reserve space for coinbase tx
-    nBlockSize = 10000;
-    nBlockWeight = 5500;
+    nBlockSize = 1000;
+    nBlockWeight = 4000;
     nBlockSigOpsCost = 400;
     fIncludeWitness = false;
 
@@ -283,7 +283,7 @@ bool BlockAssembler::TestForBlock(CTxMemPool::txiter iter)
         }
         // Once we're within 4000 weight of a full block, only look at 50 more txs
         // to try to fill the remaining space.
-        if (nBlockWeight > nBlockMaxWeight - 5500) {
+        if (nBlockWeight > nBlockMaxWeight - 4000) {
             lastFewTxs++;
         }
         return false;
@@ -295,7 +295,7 @@ bool BlockAssembler::TestForBlock(CTxMemPool::txiter iter)
                  blockFinished = true;
                  return false;
             }
-            if (nBlockSize > nBlockMaxSize - 10000) {
+            if (nBlockSize > nBlockMaxSize - 1000) {
                 lastFewTxs++;
             }
             return false;
