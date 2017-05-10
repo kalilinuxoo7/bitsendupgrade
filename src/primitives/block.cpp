@@ -17,10 +17,12 @@ uint256 CBlockHeader::GetHash() const
 	if(GetBlockTime() >= FORKX17_Main_Net2) // BitSend PoW Hardfork, Friday, 09-Sep-16 18:00:00 UTC
 	{
 		return XEVAN(BEGIN(nVersion), END(nNonce));
+		strprintf("XEVAN_Hash is on.");
 	}
     else
 	{
 	 return HashX11(BEGIN(nVersion), END(nNonce));
+	 strprintf("X11_Hash is on.");
 	}
     //return HashX11(BEGIN(nVersion), END(nNonce));//return SerializeHash(*this);//TODO-- algo xevan
 }
