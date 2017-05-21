@@ -920,7 +920,7 @@ bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
         return mapBlockIndex.count(inv.hash);
 	
 	/**TODO-- */
-	/*case MSG_TXLOCK_REQUEST:
+	case MSG_TXLOCK_REQUEST:
         return mapTxLockReq.count(inv.hash) ||
                mapTxLockReqRejected.count(inv.hash);
     case MSG_TXLOCK_VOTE:
@@ -928,12 +928,8 @@ bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
     case MSG_SPORK:
         return mapSporks.count(inv.hash);
     case MSG_MASTERNODE_WINNER:
-        if(masternodePayments.mapMasternodePayeeVotes.count(inv.hash)) {
-            masternodeSync.AddedMasternodeWinner(inv.hash);
-            return true;
-        }
-        return false;
-    case MSG_BUDGET_VOTE:
+        return mapSeenMasternodeVotes.count(inv.hash);
+   /* case MSG_BUDGET_VOTE:
         if(budget.mapSeenMasternodeBudgetVotes.count(inv.hash)) {
             masternodeSync.AddedBudgetItem(inv.hash);
             return true;
@@ -965,6 +961,8 @@ bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
         return false;
     case MSG_MASTERNODE_PING:
         return mnodeman.mapSeenMasternodePing.count(inv.hash);*/ //TODO-- ends
+	case MSG_MASTERNODE_SCANNING_ERROR:
+        return mapMasternodeScanningErrors.count(inv.hash);
     }
     // Don't know what it is, just say we already got one
     return true;

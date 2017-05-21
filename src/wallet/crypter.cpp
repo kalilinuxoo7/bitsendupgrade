@@ -110,7 +110,7 @@ bool CCrypter::Decrypt(const std::vector<unsigned char>& vchCiphertext, CKeyingM
 }
 /**TODO-- */
 // General secure AES 256 CBC encryption routine
-/*bool EncryptAES256(const SecureString& sKey, const SecureString& sPlaintext, const std::string& sIV, std::string& sCiphertext)
+bool EncryptAES256(const SecureString& sKey, const SecureString& sPlaintext, const std::string& sIV, std::string& sCiphertext)
 {
     // max ciphertext len for a n bytes of plaintext is
     // n + AES_BLOCK_SIZE - 1 bytes
@@ -143,7 +143,7 @@ bool CCrypter::Decrypt(const std::vector<unsigned char>& vchCiphertext, CKeyingM
     sCiphertext.resize(nCLen + nFLen);
     return true;
 }
-*/
+
 
 
 static bool EncryptSecret(const CKeyingMaterial& vMasterKey, const CKeyingMaterial &vchPlaintext, const uint256& nIV, std::vector<unsigned char> &vchCiphertext)
@@ -166,7 +166,7 @@ static bool DecryptSecret(const CKeyingMaterial& vMasterKey, const std::vector<u
     return cKeyCrypter.Decrypt(vchCiphertext, *((CKeyingMaterial*)&vchPlaintext));
 }
 /**TODO--*/
-/*bool DecryptAES256(const SecureString& sKey, const std::string& sCiphertext, const std::string& sIV, SecureString& sPlaintext)
+bool DecryptAES256(const SecureString& sKey, const std::string& sCiphertext, const std::string& sIV, SecureString& sPlaintext)
 {
     // plaintext will always be equal to or lesser than length of ciphertext
     int nLen = sCiphertext.size();
@@ -195,7 +195,7 @@ static bool DecryptSecret(const CKeyingMaterial& vMasterKey, const std::vector<u
     sPlaintext.resize(nPLen + nFLen);
     return true;
 }
-*/
+
 
 static bool DecryptKey(const CKeyingMaterial& vMasterKey, const std::vector<unsigned char>& vchCryptedSecret, const CPubKey& vchPubKey, CKey& key)
 {

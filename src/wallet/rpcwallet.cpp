@@ -60,8 +60,8 @@ void EnsureWalletIsUnlocked()
 
 void WalletTxToJSON(const CWalletTx& wtx, UniValue& entry)
 {
-    int confirms = wtx.GetDepthInMainChain(/*false*/); //TODO--
-    int confirmsTotal = /*GetIXConfirmations(wtx.GetHash()) + */confirms;
+    int confirms = wtx.GetDepthInMainChain(false); //TODO--
+    int confirmsTotal = GetIXConfirmations(wtx.GetHash()) + confirms;
     entry.push_back(Pair("confirmations", confirmsTotal));
     entry.push_back(Pair("bcconfirmations", confirms));
 	
@@ -368,13 +368,13 @@ static void SendMoney(const CTxDestination &address, CAmount nValue, bool fSubtr
     CRecipient recipient = {scriptPubKey, nValue, fSubtractFeeFromAmount};
     vecSend.push_back(recipient);
     if (!pwalletMain->CreateTransaction(vecSend, wtxNew, reservekey, nFeeRequired, nChangePosRet,
-									    strError/*, NULL, true, fUseDS ? ONLY_DENOMINATED : ALL_COINS, fUseIX*/)) {//TODO--
+									    strError, NULL, true, fUseDS ? ONLY_DENOMINATED : ALL_COINS, fUseIX)) {//TODO--
         if (!fSubtractFeeFromAmount && nValue + nFeeRequired > curBalance)
             strError = strprintf("Error: This transaction requires a transaction fee of at least %s", FormatMoney(nFeeRequired));
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
     }
     CValidationState state;
-    if (!pwalletMain->CommitTransaction(wtxNew, reservekey, g_connman.get(), state/*, (!fUseIX ? "tx" : "ix")*/)) { //TODO-- ix = txlreq
+    if (!pwalletMain->CommitTransaction(wtxNew, reservekey, g_connman.get(), state, (!fUseIX ? "tx" : "txlreq"))) { //TODO-- ix = txlreq
         strError = strprintf("Error: The transaction was rejected! Reason given: %s", state.GetRejectReason());
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
     }
@@ -1064,7 +1064,7 @@ UniValue sendmany(const JSONRPCRequest& request)
         fUseDS = request.params[6].get_bool();
 	//TODO--
     bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, nChangePosRet, strFailReason
-	                                               /*NULL, true, fUseDS ? ONLY_DENOMINATED : ALL_COINS, fUseIX*/);
+	                                               NULL, true, fUseDS ? ONLY_DENOMINATED : ALL_COINS, fUseIX);
     if (!fCreated)
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
     CValidationState state;
@@ -1259,7 +1259,7 @@ UniValue ListReceived(const UniValue& params, bool fByAccounts)
             continue;
 
         int nDepth = wtx.GetDepthInMainChain();
-		//int nBCDepth = wtx.GetDepthInMainChain(false); //TODO--
+		int nBCDepth = wtx.GetDepthInMainChain(false); //TODO--
         if (nDepth < nMinDepth)
             continue;
 
@@ -1276,7 +1276,7 @@ UniValue ListReceived(const UniValue& params, bool fByAccounts)
             tallyitem& item = mapTally[address];
             item.nAmount += txout.nValue;
             item.nConf = min(item.nConf, nDepth);
-			//item.nBCConf = min(item.nBCConf, nBCDepth);//TODO--
+			item.nBCConf = min(item.nBCConf, nBCDepth);//TODO--
             item.txids.push_back(wtx.GetHash());
             if (mine & ISMINE_WATCH_ONLY)
                 item.fIsWatchonly = true;
@@ -1311,7 +1311,7 @@ UniValue ListReceived(const UniValue& params, bool fByAccounts)
             tallyitem& _item = mapAccountTally[strAccount];
             _item.nAmount += nAmount;
             _item.nConf = min(_item.nConf, nConf);
-			//_item.nBCConf = min(item.nBCConf, nBCConf);//TODO-- 
+			_item.nBCConf = min(item.nBCConf, nBCConf);//TODO-- 
             _item.fIsWatchonly = fIsWatchonly;
         }
         else
@@ -1470,7 +1470,7 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
                 entry.push_back(Pair("involvesWatchonly", true));
             entry.push_back(Pair("account", strSentAccount));
             MaybePushAddress(entry, s.destination);
-            //entry.push_back(Pair("category", "send"));
+            entry.push_back(Pair("category", "send"));//TODO--
 			//TODO--
 			std::map<std::string, std::string>::const_iterator it = wtx.mapValue.find("DS");
             entry.push_back(Pair("category", (it != wtx.mapValue.end() && it->second == "1") ? "darksent" : "send"));
@@ -1846,7 +1846,7 @@ UniValue listsinceblock(const JSONRPCRequest& request)
     {
         CWalletTx tx = (*it).second;
 
-        if (depth == -1 || tx.GetDepthInMainChain(/*false*/) < depth)//TODO--
+        if (depth == -1 || tx.GetDepthInMainChain(false) < depth)//TODO--
             ListTransactions(tx, "*", 0, true, transactions, filter);
     }
 
@@ -2102,7 +2102,7 @@ UniValue walletpassphrase(const JSONRPCRequest& request)
     if (!pwalletMain->IsLocked() && pwalletMain->fWalletUnlockAnonymizeOnly && anonymizeOnly)
         throw JSONRPCError(RPC_WALLET_ALREADY_UNLOCKED, "Error: Wallet is already unlocked.");
 
-    if (!pwalletMain->Unlock(strWalletPass/*, anonymizeOnly*/))
+    if (!pwalletMain->Unlock(strWalletPass, anonymizeOnly))
         throw JSONRPCError(RPC_WALLET_PASSPHRASE_INCORRECT, "Error: The wallet passphrase entered was incorrect.");
 
 
@@ -2470,7 +2470,7 @@ UniValue getwalletinfo(const JSONRPCRequest& request)
     return obj;
 }
 /**TODO-- */
-/**UniValue keepass(const UniValue& params, bool fHelp) {
+UniValue keepass(const UniValue& params, bool fHelp) {
     string strCommand;
 
     if (params.size() >= 1)
@@ -2521,7 +2521,7 @@ UniValue getwalletinfo(const JSONRPCRequest& request)
 
     return "Invalid command";
 
-}*/
+}
 
 
 UniValue resendwallettransactions(const JSONRPCRequest& request)
