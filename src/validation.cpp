@@ -1268,17 +1268,20 @@ double ConvertBitsToDouble(unsigned int nBits)
 CAmount GetBlockSubsidy(int nBits, int nHeight, const Consensus::Params& consensusParams)/**TODO-- */
 {
 	//TODO--
-
+    // Premine 1306400
+    // 240K x 50 BSD = 12 MIO
+    // 7920 x 24 BSD = 196 MIO
+    // Total 210 MIO Coins
+    // We need a limit for security ~33 years
+    // 420,000 premined coins + 886,400 already mined LIM coins 
+    // Old Thread https://bitcointalk.org/index.php?topic=637366.0
+    // New Thread https://bitcointalk.org/index.php?topic=895425.0
+    // Bitsenddev and Bitsend Support have no Premine Coins
     CAmount nSubsidy = 50 * COIN;
-	
-	if (nHeight = 1)
-		nSubsidy = 1306400 * COIN; 
-    
-    if (nHeight >= (FORKX17_Main_Net-1000))nSubsidy = 25 * COIN;
-	if (nHeight >= ((FORKX17_Main_Net*33)-50256))nSubsidy = 1/10 * COIN;
-	
-	
-    return nSubsidy;
+   if (nHeight = 1) nSubsidy = 1306400 * COIN; 
+   if (nHeight >= (FORKX17_Main_Net-1000))nSubsidy = 25 * COIN;
+   if (nHeight >= ((FORKX17_Main_Net*33)-50256))nSubsidy = 1/10 * COIN;
+   return nSubsidy;
 }
 
 /**TODO-- Masternode to old sysytem */
@@ -3271,26 +3274,18 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
     const int nHeight = pindexPrev == NULL ? 0 : pindexPrev->nHeight + 1;
     // Check proof of work
 	/**TODO-- */
-    /*if(Params().NetworkIDString() == CBaseChainParams::TESTNET) {
+    if(Params().NetworkIDString() == CBaseChainParams::TESTNET) {
         if (block.nBits != GetNextWorkRequired(pindexPrev, &block, consensusParams))
             return state.DoS(100, error("%s : incorrect proof of work at %d", __func__, nHeight),
                              REJECT_INVALID, "bad-diffbits");
-    } else {
-        // Check proof of work (Here for the architecture issues with DGW v1 and v2)
-        if(nHeight <= 68589){
-            unsigned int nBitsNext = GetNextWorkRequired(pindexPrev, &block, consensusParams);
-            double n1 = ConvertBitsToDouble(block.nBits);
-            double n2 = ConvertBitsToDouble(nBitsNext);
-
-            if (abs(n1-n2) > n1*0.5)
-                return state.DoS(100, error("%s : incorrect proof of work (DGW pre-fork) - %f %f %f at %d", __func__, abs(n1-n2), n1, n2, nHeight),
-                                REJECT_INVALID, "bad-diffbits");
-        } else {
+    } else 
+    {
+        if(nHeight >= FORKX17_Main_Net){
             if (block.nBits != GetNextWorkRequired(pindexPrev, &block, consensusParams))
                 return state.DoS(100, error("%s : incorrect proof of work at %d", __func__, nHeight),
                                 REJECT_INVALID, "bad-diffbits");
-        }
-    }*/
+                            }
+    }
 	//TODO-- ends
     // Check timestamp against prev
     if (block.GetBlockTime() <= pindexPrev->GetMedianTimePast())
