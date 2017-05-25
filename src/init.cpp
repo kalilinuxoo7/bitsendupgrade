@@ -36,18 +36,16 @@
 #include "torcontrol.h"
 #include "ui_interface.h"
 #include "util.h"
-/**TODO-- change accordingly */
-/*#include "activemasternode.h"
-#include "masternode-budget.h"
-#include "masternode-payments.h"
+//TODO-- change accordingly 
+#include "activemasternode.h"
 #include "masternodeman.h"
 #include "masternodeconfig.h"
-#include "spork.h"*/
+#include "spork.h"
 
 #include "utilmoneystr.h"
 #include "validationinterface.h"
 #ifdef ENABLE_WALLET
-//#include "keepass.h"//TODO--
+#include "keepass.h"//TODO--
 #include "wallet/wallet.h"
 #endif
 #include "warnings.h"
@@ -221,7 +219,7 @@ void PrepareShutdown() //TODO--
         pwalletMain->Flush(false);
 #endif
     MapPort(false);
-	//DumpMasternodes();// TODO--
+	DumpMasternodes();// TODO--
     //DumpBudgets();// TODO--
     //DumpMasternodePayments();// TODO--
     UnregisterValidationInterface(peerLogic.get());
@@ -486,7 +484,7 @@ std::string HelpMessage(HelpMessageMode mode)
     }
 	/**TODO-- */
     std::string debugCategories = "addrman, alert, bench, coindb, db, lock, rand, rpc, selectcoins, mempool, mempoolrej, net, proxy, prune, http, libevent, tor, zmq, "
-                             "dash (or specifically: darksend, instantx, masternode, keepass, mnpayments, mnbudget)"; // Don't translate these and qt below
+                             "bsd (or specifically: darksend, instantx, masternode, keepass, mnpayments, mnbudget)"; // Don't translate these and qt below
     if (mode == HMM_BITCOIN_QT)
         debugCategories += ", qt";
     strUsage += HelpMessageOpt("-debug=<category>", strprintf(_("Output debugging information (default: %u, supplying <category> is optional)"), 0) + ". " +
@@ -528,11 +526,11 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += HelpMessageOpt("-mnconflock=<n>", strprintf(_("Lock masternodes from masternode configuration file (default: %u)"), 1));
     strUsage += HelpMessageOpt("-masternodeprivkey=<n>", _("Set the masternode private key"));
     strUsage += HelpMessageOpt("-masternodeaddr=<n>", strprintf(_("Set external address:port to get to this masternode (example: %s)"), "128.127.106.235:9999"));
-    strUsage += HelpMessageOpt("-budgetvotemode=<mode>", _("Change automatic finalized budget voting behavior. mode=auto: Vote for only exact finalized budget match to my generated budget. (string, default: auto)"));
+    strUsage += HelpMessageOpt("-masternodeminprotocol=<n>", _("Ignore masternodes less than version (example: 70050; default : 0)"));
 
     strUsage += HelpMessageGroup(_("Darksend options:"));
     strUsage += HelpMessageOpt("-enabledarksend=<n>", strprintf(_("Enable use of automated darksend for funds stored in this wallet (0-1, default: %u)"), fEnableDarksend));
-    strUsage += HelpMessageOpt("-darksendmultisession=<n>", strprintf(_("Enable multiple darksend mixing sessions per block, experimental (0-1, default: %u)"), fDarksendMultiSession));
+    //strUsage += HelpMessageOpt("-darksendmultisession=<n>", strprintf(_("Enable multiple darksend mixing sessions per block, experimental (0-1, default: %u)"), fDarksendMultiSession));
     strUsage += HelpMessageOpt("-darksendrounds=<n>", strprintf(_("Use N separate masternodes to anonymize funds  (2-8, default: %u)"), nDarksendRounds));
     strUsage += HelpMessageOpt("-anonymizedashamount=<n>", strprintf(_("Keep N DASH anonymized (default: %u)"), nAnonymizeDashAmount));
     strUsage += HelpMessageOpt("-liquidityprovider=<n>", strprintf(_("Provide liquidity to Darksend by infrequently mixing coins on a continual basis (0-100, default: %u, 1=very frequent, high fees, 100=very infrequent, low fees)"), nLiquidityProvider));
@@ -852,7 +850,7 @@ void InitParameterInteraction()
     }
 	
 	/**TODO-- */
-	/*if(!GetBoolArg("-enableinstantx", fEnableInstantX)){
+	if(!GetBoolArg("-enableinstantx", fEnableInstantX)){
         if (SoftSetArg("-instantxdepth", 0))
             LogPrintf("AppInit2 : parameter interaction: -enableinstantx=false -> setting -nInstantXDepth=0\n");
     }
@@ -863,11 +861,11 @@ void InitParameterInteraction()
         LogPrintf("AppInit2 : parameter interaction: -liquidityprovider=%d -> setting -enabledarksend=1\n", nLiqProvTmp);
         mapArgs["-darksendrounds"] = "99999";
         LogPrintf("AppInit2 : parameter interaction: -liquidityprovider=%d -> setting -darksendrounds=99999\n", nLiqProvTmp);
-        mapArgs["-anonymizedashamount"] = "999999";
+        mapArgs["-anonymizeBitsendamount"] = "999999";
         LogPrintf("AppInit2 : parameter interaction: -liquidityprovider=%d -> setting -anonymizedashamount=999999\n", nLiqProvTmp);
-        mapArgs["-darksendmultisession"] = "0";
-        LogPrintf("AppInit2 : parameter interaction: -liquidityprovider=%d -> setting -darksendmultisession=0\n", nLiqProvTmp);
-    }*/
+        //mapArgs["-darksendmultisession"] = "0";
+        //LogPrintf("AppInit2 : parameter interaction: -liquidityprovider=%d -> setting -darksendmultisession=0\n", nLiqProvTmp);
+    }
 	//TODO-- ends
 }
 
@@ -1285,11 +1283,11 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
     }
 	
 	/**TODO-- */
-	/*if (mapArgs.count("-sporkkey")) // spork priv key
+	if (mapArgs.count("-sporkkey")) // spork priv key
     {
         if (!sporkManager.SetPrivKey(GetArg("-sporkkey", "")))
             return InitError(_("Unable to sign spork message, wrong key?"));
-    }*/
+    }
 
     // Start the lightweight task scheduler thread
     CScheduler::Function serviceLoop = boost::bind(&CScheduler::serviceQueue, &scheduler);
@@ -1827,43 +1825,6 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
     {
         LogPrintf("Error reading mncache.dat: ");
         if(readResult == CMasternodeDB::IncorrectFormat)
-            LogPrintf("magic is ok but data has invalid format, will try to recreate\n");
-        else
-            LogPrintf("file format is unknown or invalid, please fix it manually\n");
-    }
-
-    uiInterface.InitMessage(_("Loading budget cache..."));
-
-    CBudgetDB budgetdb;
-    CBudgetDB::ReadResult readResult2 = budgetdb.Read(budget);
-    
-    if (readResult2 == CBudgetDB::FileError)
-        LogPrintf("Missing budget cache - budget.dat, will try to recreate\n");
-    else if (readResult2 != CBudgetDB::Ok)
-    {
-        LogPrintf("Error reading budget.dat: ");
-        if(readResult2 == CBudgetDB::IncorrectFormat)
-            LogPrintf("magic is ok but data has invalid format, will try to recreate\n");
-        else
-            LogPrintf("file format is unknown or invalid, please fix it manually\n");
-    }
-
-    //flag our cached items so we send them to our peers
-    budget.ResetSync();
-    budget.ClearSeen();
-
-
-    uiInterface.InitMessage(_("Loading masternode payment cache..."));
-
-    CMasternodePaymentDB mnpayments;
-    CMasternodePaymentDB::ReadResult readResult3 = mnpayments.Read(masternodePayments);
-    
-    if (readResult3 == CMasternodePaymentDB::FileError)
-        LogPrintf("Missing masternode payment cache - mnpayments.dat, will try to recreate\n");
-    else if (readResult3 != CMasternodePaymentDB::Ok)
-    {
-        LogPrintf("Error reading mnpayments.dat: ");
-        if(readResult3 == CMasternodePaymentDB::IncorrectFormat)
             LogPrintf("magic is ok but data has invalid format, will try to recreate\n");
         else
             LogPrintf("file format is unknown or invalid, please fix it manually\n");
