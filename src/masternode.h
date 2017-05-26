@@ -1,50 +1,103 @@
 
-// Copyright (c) 2014-2015 The Bitsend developers
+// Copyright (c) 2014-2016 The Dash Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #ifndef MASTERNODE_H
 #define MASTERNODE_H
 
-//#include "bignum.h"
 #include "sync.h"
 #include "net.h"
 #include "key.h"
-//#include "core.h"
 #include "util.h"
-#include "script/script.h"
 #include "base58.h"
-#include "validation.h"
-#include "masternode-pos.h"
-
-#define MASTERNODE_NOT_PROCESSED               0 // initial state
-#define MASTERNODE_IS_CAPABLE                  1
-#define MASTERNODE_NOT_CAPABLE                 2
-#define MASTERNODE_STOPPED                     3
-#define MASTERNODE_INPUT_TOO_NEW               4
-#define MASTERNODE_PORT_NOT_OPEN               6
-#define MASTERNODE_PORT_OPEN                   7
-#define MASTERNODE_SYNC_IN_PROCESS             8
-#define MASTERNODE_REMOTELY_ENABLED            9
+#include "main.h"
+#include "timedata.h"
 
 #define MASTERNODE_MIN_CONFIRMATIONS           15
-#define MASTERNODE_MIN_DSEEP_SECONDS           (30*60)
-#define MASTERNODE_MIN_DSEE_SECONDS            (10*60)  // bitsenddev 12-05 Old 5*60
-#define MASTERNODE_PING_SECONDS                (5*60)   // bitsenddev 12-05 OLD 1*60
+#define MASTERNODE_MIN_MNP_SECONDS             (10*60)
+#define MASTERNODE_MIN_MNB_SECONDS             (5*60)
+#define MASTERNODE_PING_SECONDS                (5*60)
 #define MASTERNODE_EXPIRATION_SECONDS          (65*60)
-#define MASTERNODE_REMOVAL_SECONDS             (70*60)
+#define MASTERNODE_REMOVAL_SECONDS             (75*60)
+#define MASTERNODE_CHECK_SECONDS               5
 
 using namespace std;
 
 class CMasternode;
-class CMasternodePayments;
-class CMasternodePaymentWinner;
-
-extern CMasternodePayments masternodePayments;
-extern map<uint256, CMasternodePaymentWinner> mapSeenMasternodeVotes;
+class CMasternodeBroadcast;
+class CMasternodePing;
 extern map<int64_t, uint256> mapCacheBlockHashes;
 
-void ProcessMessageMasternodePayments(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
 bool GetBlockHash(uint256& hash, int nBlockHeight);
+
+
+//
+// The Masternode Ping Class : Contains a different serialize method for sending pings from masternodes throughout the network
+//
+
+class CMasternodePing
+{
+public:
+
+    CTxIn vin;
+    uint256 blockHash;
+    int64_t sigTime; //mnb message times
+    std::vector<unsigned char> vchSig;
+    //removed stop
+
+    CMasternodePing();
+    CMasternodePing(CTxIn& newVin);
+
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
+        READWRITE(vin);
+        READWRITE(blockHash);
+        READWRITE(sigTime);
+        READWRITE(vchSig);
+    }
+
+    bool CheckAndUpdate(int& nDos, bool fRequireEnabled = true);
+    bool Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode);
+    void Relay();
+
+    uint256 GetHash(){
+        CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
+        ss << vin;
+        ss << sigTime;
+        return ss.GetHash();
+    }
+
+    void swap(CMasternodePing& first, CMasternodePing& second) // nothrow
+    {
+        // enable ADL (not necessary in our case, but good practice)
+        using std::swap;
+
+        // by swapping the members of two classes,
+        // the two classes are effectively swapped
+        swap(first.vin, second.vin);
+        swap(first.blockHash, second.blockHash);
+        swap(first.sigTime, second.sigTime);
+        swap(first.vchSig, second.vchSig);
+    }
+
+    CMasternodePing& operator=(CMasternodePing from)
+    {
+        swap(*this, from);
+        return *this;
+    }
+    friend bool operator==(const CMasternodePing& a, const CMasternodePing& b)
+    {
+        return a.vin == b.vin && a.blockHash == b.blockHash;
+    }
+    friend bool operator!=(const CMasternodePing& a, const CMasternodePing& b)
+    {
+        return !(a == b);
+    }
+
+};
+
 
 //
 // The Masternode Class. For managing the Darksend process. It contains the input of the 1000DRK, signature to prove
@@ -55,14 +108,15 @@ class CMasternode
 private:
     // critical section to protect the inner data structures
     mutable CCriticalSection cs;
-
+    int64_t lastTimeChecked;
 public:
     enum state {
-        MASTERNODE_ENABLED = 1,
-        MASTERNODE_EXPIRED = 2,
-        MASTERNODE_VIN_SPENT = 3,
-        MASTERNODE_REMOVE = 4,
-        MASTERNODE_POS_ERROR = 5
+        MASTERNODE_PRE_ENABLED,
+        MASTERNODE_ENABLED,
+        MASTERNODE_EXPIRED,
+        MASTERNODE_VIN_SPENT,
+        MASTERNODE_REMOVE,
+        MASTERNODE_POS_ERROR
     };
 
     CTxIn vin;
@@ -71,25 +125,21 @@ public:
     CPubKey pubkey2;
     std::vector<unsigned char> sig;
     int activeState;
-    int64_t sigTime; //dsee message times
-    int64_t lastDseep;
-    int64_t lastTimeSeen;
+    int64_t sigTime; //mnb message time
     int cacheInputAge;
     int cacheInputAgeBlock;
     bool unitTest;
     bool allowFreeTx;
     int protocolVersion;
     int64_t nLastDsq; //the dsq count from the last dsq broadcast of this node
-    CScript donationAddress;
-    int donationPercentage;
-    int nVote;
-    int64_t lastVote;
     int nScanningErrorCount;
     int nLastScanningErrorBlockHeight;
+    CMasternodePing lastPing;
 
     CMasternode();
     CMasternode(const CMasternode& other);
-    CMasternode(CService newAddr, CTxIn newVin, CPubKey newPubkey, std::vector<unsigned char> newSig, int64_t newSigTime, CPubKey newPubkey2, int protocolVersionIn, CScript donationAddress, int donationPercentage);
+    CMasternode(const CMasternodeBroadcast& mnb);
+
 
     void swap(CMasternode& first, CMasternode& second) // nothrow
     {
@@ -105,18 +155,13 @@ public:
         swap(first.sig, second.sig);
         swap(first.activeState, second.activeState);
         swap(first.sigTime, second.sigTime);
-        swap(first.lastDseep, second.lastDseep);
-        swap(first.lastTimeSeen, second.lastTimeSeen);
+        swap(first.lastPing, second.lastPing);
         swap(first.cacheInputAge, second.cacheInputAge);
         swap(first.cacheInputAgeBlock, second.cacheInputAgeBlock);
         swap(first.unitTest, second.unitTest);
         swap(first.allowFreeTx, second.allowFreeTx);
         swap(first.protocolVersion, second.protocolVersion);
         swap(first.nLastDsq, second.nLastDsq);
-        swap(first.donationAddress, second.donationAddress);
-        swap(first.donationPercentage, second.donationPercentage);
-        swap(first.nVote, second.nVote);
-        swap(first.lastVote, second.lastVote);
         swap(first.nScanningErrorCount, second.nScanningErrorCount);
         swap(first.nLastScanningErrorBlockHeight, second.nLastScanningErrorBlockHeight);
     }
@@ -137,48 +182,33 @@ public:
 
     uint256 CalculateScore(int mod=1, int64_t nBlockHeight=0);
 
-    IMPLEMENT_SERIALIZE
-    (
-        // serialized format:
-        // * version byte (currently 0)
-        // * all fields (?)
-        {
-                LOCK(cs);
-                unsigned char nVersion = 0;
-                READWRITE(nVersion);
-                READWRITE(vin);
-                READWRITE(addr);
-                READWRITE(pubkey);
-                READWRITE(pubkey2);
-                READWRITE(sig);
-                READWRITE(activeState);
-                READWRITE(sigTime);
-                READWRITE(lastDseep);
-                READWRITE(lastTimeSeen);
-                READWRITE(cacheInputAge);
-                READWRITE(cacheInputAgeBlock);
-                READWRITE(unitTest);
-                READWRITE(allowFreeTx);
-                READWRITE(protocolVersion);
-                READWRITE(nLastDsq);
-                READWRITE(donationAddress);
-                READWRITE(donationPercentage);
-                READWRITE(nVote);
-                READWRITE(lastVote);
-                READWRITE(nScanningErrorCount);
-                READWRITE(nLastScanningErrorBlockHeight);
-        }
-    )
+    ADD_SERIALIZE_METHODS;
 
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
+            LOCK(cs);
 
-    void UpdateLastSeen(int64_t override=0)
-    {
-        if(override == 0){
-            lastTimeSeen = GetAdjustedTime();
-        } else {
-            lastTimeSeen = override;
-        }
+            READWRITE(vin);
+            READWRITE(addr);
+            READWRITE(pubkey);
+            READWRITE(pubkey2);
+            READWRITE(sig);
+            READWRITE(sigTime);
+            READWRITE(protocolVersion);
+            READWRITE(activeState);
+            READWRITE(lastPing);
+            READWRITE(cacheInputAge);
+            READWRITE(cacheInputAgeBlock);
+            READWRITE(unitTest);
+            READWRITE(allowFreeTx);
+            READWRITE(nLastDsq);
+            READWRITE(nScanningErrorCount);
+            READWRITE(nLastScanningErrorBlockHeight);
     }
+
+    int64_t SecondsSincePayment();
+
+    bool UpdateFromNewBroadcast(CMasternodeBroadcast& mnb);
 
     inline uint64_t SliceHash(uint256& hash, int slice)
     {
@@ -187,23 +217,36 @@ public:
         return n;
     }
 
-    void Check();
+    void Check(bool forceCheck = false);
 
-    bool UpdatedWithin(int seconds)
+    bool IsBroadcastedWithin(int seconds)
     {
-        // LogPrintf("UpdatedWithin %d, %d --  %d \n", GetAdjustedTime() , lastTimeSeen, (GetAdjustedTime() - lastTimeSeen) < seconds);
+        return (GetAdjustedTime() - sigTime) < seconds;
+    }
 
-        return (GetAdjustedTime() - lastTimeSeen) < seconds;
+    bool IsPingedWithin(int seconds, int64_t now = -1)
+    {
+        now == -1 ? now = GetAdjustedTime() : now;
+
+        return (lastPing == CMasternodePing())
+                ? false
+                : now - lastPing.sigTime < seconds;
     }
 
     void Disable()
     {
-        lastTimeSeen = 0;
+        sigTime = 0;
+        lastPing = CMasternodePing();
     }
 
     bool IsEnabled()
     {
         return activeState == MASTERNODE_ENABLED;
+    }
+
+    bool IsPreEnabled()
+    {
+        return activeState == MASTERNODE_PRE_ENABLED;
     }
 
     int GetMasternodeInputAge()
@@ -218,141 +261,62 @@ public:
         return cacheInputAge+(chainActive.Tip()->nHeight-cacheInputAgeBlock);
     }
 
-    void ApplyScanningError(CMasternodeScanningError& mnse)
-    {
-        if(!mnse.IsValid()) return;
-
-        if(mnse.nBlockHeight == nLastScanningErrorBlockHeight) return;
-        nLastScanningErrorBlockHeight = mnse.nBlockHeight;
-
-        if(mnse.nErrorType == SCANNING_SUCCESS){
-            nScanningErrorCount--;
-            if(nScanningErrorCount < 0) nScanningErrorCount = 0;
-        } else { //all other codes are equally as bad
-                    nScanningErrorCount++;
-           /* Bitsenddev 04/08/2015 
-                        if(nScanningErrorCount >= 4)
-                        {
-                        nScanningErrorCount = 0;
-                        LogPrintf("S-Reset Bad Masternodescore \n"); //	Bitsenddev Set this for Debug
-                        }
-                        */
-            if(nScanningErrorCount > MASTERNODE_SCANNING_ERROR_THESHOLD*2) nScanningErrorCount = MASTERNODE_SCANNING_ERROR_THESHOLD*2;
-        }
-    }
-
     std::string Status() {
-        std::string strStatus = "ACTIVE";
+        std::string strStatus = "unknown";
 
-        if(activeState == CMasternode::MASTERNODE_ENABLED) strStatus   = "ENABLED";
-        if(activeState == CMasternode::MASTERNODE_EXPIRED) strStatus   = "EXPIRED";
-        if(activeState == CMasternode::MASTERNODE_VIN_SPENT) strStatus = "VIN_SPENT";
-        if(activeState == CMasternode::MASTERNODE_REMOVE) strStatus    = "REMOVE";
-        if(activeState == CMasternode::MASTERNODE_POS_ERROR) strStatus = "POS_ERROR";
+        if(activeState == CMasternode::MASTERNODE_PRE_ENABLED) strStatus = "PRE_ENABLED";
+        if(activeState == CMasternode::MASTERNODE_ENABLED) strStatus     = "ENABLED";
+        if(activeState == CMasternode::MASTERNODE_EXPIRED) strStatus     = "EXPIRED";
+        if(activeState == CMasternode::MASTERNODE_VIN_SPENT) strStatus   = "VIN_SPENT";
+        if(activeState == CMasternode::MASTERNODE_REMOVE) strStatus      = "REMOVE";
+        if(activeState == CMasternode::MASTERNODE_POS_ERROR) strStatus   = "POS_ERROR";
 
         return strStatus;
     }
 
+    int64_t GetLastPaid();
+
 };
 
-// for storing the winning payments
 
+//
+// The Masternode Broadcast Class : Contains a different serialize method for sending masternodes through the network
+//
 
-
-class CMasternodePaymentWinner
+class CMasternodeBroadcast : public CMasternode
 {
 public:
-    int nBlockHeight;
-    CTxIn vin;
-    CScript payee;
-    std::vector<unsigned char> vchSig;
-    uint64_t score;
-	
-		
-    CMasternodePaymentWinner() {
-        nBlockHeight = 0;
-        score = 0;
-        vin = CTxIn();
-        payee = CScript();
-    }
-	
+    CMasternodeBroadcast();
+    CMasternodeBroadcast(CService newAddr, CTxIn newVin, CPubKey newPubkey, CPubKey newPubkey2, int protocolVersionIn);
+    CMasternodeBroadcast(const CMasternode& mn);
 
+    bool CheckAndUpdate(int& nDoS);
+    bool CheckInputsAndAdd(int& nDos);
+    bool Sign(CKey& keyCollateralAddress);
+    void Relay();
 
-    uint256 GetHash()
-	{ 
-	uint256 n2, n3; 
-	
-	 int nBlockTime = chainActive.Tip()->GetBlockTime();
-	    if (nBlockTime >= FORKX17_Main_Net2)
-	{ 
-    	n2 = XEVAN(BEGIN(nBlockHeight), END(nBlockHeight));
-        n3 = vin.prevout.hash > n2 ? (vin.prevout.hash - n2) : (n2 - vin.prevout.hash);
-        return n3;
-	}
-    else 
-    {
-		n2 = HashX11(BEGIN(nBlockHeight), END(nBlockHeight));
-		n3 = vin.prevout.hash > n2 ? (vin.prevout.hash - n2) : (n2 - vin.prevout.hash);
-		return n3;
-    }
-    }
+    ADD_SERIALIZE_METHODS;
 
-    IMPLEMENT_SERIALIZE(
-        READWRITE(nBlockHeight);
-        READWRITE(payee);
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
         READWRITE(vin);
-        READWRITE(score);
-        READWRITE(vchSig);
-     )
-};
-
-//
-// Masternode Payments Class
-// Keeps track of who should get paid for which blocks
-//
-
-class CMasternodePayments
-{
-private:
-    std::vector<CMasternodePaymentWinner> vWinning;
-    int nSyncedFromPeer;
-    std::string strMasterPrivKey;
-    std::string strTestPubKey;
-    std::string strMainPubKey;
-    bool enabled;
-    int nLastBlockHeight;
-
-public:
-
-    CMasternodePayments() {
-        
-        // 100: G=0 101: MK just test
-        strMainPubKey = "04521CAE97FEE1CA1F67B4B6D5E4323125D63DBA5291CF2609F71234ED86355A109140B3316366CAD47DCD2D0C04326A3233AC7797231F0AF88C1FE6FE94B7E37C"; // bitsenddev 04-2015
-        strTestPubKey = "04CBC82D432A42A05F9474A5554413A6166767C928DE669C40144DC585FB85F15E28035EADE398A6B8E38C24A001EAB50023124C4D8328C99EC2FDE47ED54B17BF";  // bitsenddev do not use 04-2015
-        enabled = false;
+        READWRITE(addr);
+        READWRITE(pubkey);
+        READWRITE(pubkey2);
+        READWRITE(sig);
+        READWRITE(sigTime);
+        READWRITE(protocolVersion);
+        READWRITE(lastPing);
+        READWRITE(nLastDsq);
     }
 
-    bool SetPrivKey(std::string strPrivKey);
-    bool CheckSignature(CMasternodePaymentWinner& winner);
-    bool Sign(CMasternodePaymentWinner& winner);
+    uint256 GetHash(){
+        CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
+        ss << sigTime;
+        ss << pubkey;
+        return ss.GetHash();
+    }
 
-    // Deterministically calculate a given "score" for a masternode depending on how close it's hash is
-    // to the blockHeight. The further away they are the better, the furthest will win the election
-    // and get paid this block
-    //
-
-    uint64_t CalculateScore(uint256 blockHash, CTxIn& vin);
-    bool GetWinningMasternode(int nBlockHeight, CTxIn& vinOut);
-    bool AddWinningMasternode(CMasternodePaymentWinner& winner);
-    bool ProcessBlock(int nBlockHeight);
-    void Relay(CMasternodePaymentWinner& winner);
-    void Sync(CNode* node);
-    void CleanPaymentList();
-    int LastPayment(CMasternode& mn);
-
-    //slow
-    bool GetBlockPayee(int nBlockHeight, CScript& payee);
 };
-
 
 #endif

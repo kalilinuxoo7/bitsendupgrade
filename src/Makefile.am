@@ -112,7 +112,9 @@ BITCOIN_CORE_H = \
   dbwrapper.h \
   limitedmap.h \
   masternode.h \
-  masternode-pos.h \
+  masternode-payments.h \
+  masternode-budget.h \
+  masternode-sync.h \
   masternodeman.h \
   masternodeconfig.h \
   memusage.h \
@@ -205,6 +207,7 @@ libbitcoin_server_a_SOURCES = \
   pow.cpp \
   rest.cpp \
   rpc/blockchain.cpp \
+  rpcmasternode.cpp \
   rpc/mining.cpp \
   rpc/misc.cpp \
   rpc/net.cpp \
@@ -242,7 +245,9 @@ libbitcoin_wallet_a_SOURCES = \
   darksend-relay.cpp \
   instantx.cpp \
   masternode.cpp \
-  masternode-pos.cpp \
+  masternode-budget.cpp \
+  masternode-payments.cpp \
+  masternode-sync.cpp \
   masternodeconfig.cpp \
   masternodeman.cpp \
   keepass.cpp \
